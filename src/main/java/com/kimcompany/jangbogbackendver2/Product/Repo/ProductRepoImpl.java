@@ -35,13 +35,20 @@ public class ProductRepoImpl implements ProductRepoCustom {
         return fetchFirst != null;
     }
     @Override
-    public Page<SelectListDto>selectForList(int pageSize, long storeId, SearchCondition searchCondition){
-        PageRequest pageRequest = PageRequest.of(searchCondition.getPage()-1, pageSize);
-        long categoryId = Long.parseLong(searchCondition.getCategoryId());
+    public Page<SelectListDto>selectForList(int pageSize, SearchCondition searchCondition){
+        return null;
+    }
+    //----------------------------------------------
+
+    @Override
+    public Page<SelectListDto>selectForList(SearchCondition searchCondition){
+        PageRequest pageRequest = PageRequest.of(searchCondition.getPage()-1, searchCondition.getPageSize());
+        long categoryId = searchCondition.getCategoryId();
+        long storeId=searchCondition.getStoreId();
         List<SelectListDto> selectListDtos= jpaQueryFactory
                 .select(new QSelectListDto(productEntity))
                 .from(productEntity)
-                .where(productEntity.storeEntity.id.eq(storeId),productEntity.commonColumn.state.ne(deleteState), checkCondition(categoryId, searchCondition.getValue()))
+                .where(productEntity.storeEntity.id.eq(storeId),productEntity.commonColumn.state.ne(deleteState), checkCondition(categoryId, searchCondition.getKeyword()))
                 .orderBy(productEntity.id.desc())
                 .offset(pageRequest.getOffset())
                 .limit(pageRequest.getPageSize())
@@ -50,7 +57,7 @@ public class ProductRepoImpl implements ProductRepoCustom {
         JPAQuery<Long> count = jpaQueryFactory
                 .select(productEntity.count())
                 .from(productEntity)
-                .where(productEntity.storeEntity.id.eq(storeId), productEntity.commonColumn.state.ne(deleteState), checkCondition(categoryId, searchCondition.getValue()));
+                .where(productEntity.storeEntity.id.eq(storeId), productEntity.commonColumn.state.ne(deleteState), checkCondition(categoryId, searchCondition.getKeyword()));
 
         // Result
         Page<SelectListDto> selectListDtos2 = PageableExecutionUtils.getPage(selectListDtos, pageRequest, count::fetchOne);

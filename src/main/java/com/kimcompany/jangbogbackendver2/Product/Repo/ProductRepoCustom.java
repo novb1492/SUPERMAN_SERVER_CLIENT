@@ -6,7 +6,9 @@ import org.springframework.data.domain.Page;
 
 public interface ProductRepoCustom {
     Boolean exist(long storeId, String productName);
-    public Page<SelectListDto> selectForList(int pageSize, long storeId, SearchCondition searchCondition);
+    public Page<SelectListDto> selectForList(int pageSize, SearchCondition searchCondition);
+    //------------------------------
+    public Page<SelectListDto>selectForList(SearchCondition searchCondition);
 
 
 }
