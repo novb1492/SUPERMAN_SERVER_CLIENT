@@ -50,13 +50,14 @@ public class SecurityConfig  {
                 //.and()
                 .addFilter(corsConfig.corsfilter())
                 .addFilter(new LoginFilter(loginService,authenticationManager(authenticationConfiguration)))
-                .addFilter(new AuthorizationFilter(authenticationManager(authenticationConfiguration), authorizationService))
+//                .addFilter(new AuthorizationFilter(authenticationManager(authenticationConfiguration), authorizationService))
                 .formLogin().disable().httpBasic().disable()
-                .authorizeRequests()
-                .antMatchers("/login","/token-expire/**","/login-fail/**","/ws/**","/kg/**").permitAll()
-                .antMatchers("/admin/**").hasAnyAuthority("ADMIN")
-                .antMatchers("/manage/**").hasAnyAuthority("MANAGE","ADMIN")
-                .anyRequest().authenticated()
+                .authorizeRequests().anyRequest().permitAll();
+        //임시
+//                .antMatchers("/login","/token-expire/**","/login-fail/**","/ws/**","/kg/**").permitAll()
+//                .antMatchers("/admin/**").hasAnyAuthority("ADMIN")
+//                .antMatchers("/manage/**").hasAnyAuthority("MANAGE","ADMIN")
+//                .anyRequest().authenticated()
                 ;
 
         return http.build();
