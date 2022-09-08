@@ -1,0 +1,102 @@
+//querydsl 추가
+buildscript {
+    ext {
+        queryDslVersion = "5.0.0"
+    }
+}
+plugins {
+    id 'org.springframework.boot' version '2.6.7'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
+    //querydsl 추가
+    id "com.ewerk.gradle.plugins.querydsl" version "1.0.10"
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // HTTP CLIENT
+    implementation group: 'commons-httpclient', name: 'commons-httpclient', version: '3.1'
+    // https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
+    implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.9.3'
+    // AWS-SQS-MESSAGE
+    implementation group: 'org.springframework.cloud', name: 'spring-cloud-aws-messaging', version: '2.2.6.RELEASE'
+    // https://mvnrepository.com/artifact/net.nurigo/javaSDK
+    implementation group: 'net.nurigo', name: 'javaSDK', version: '2.2'
+
+//    // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-aws-messaging aws sqs
+//    implementation group: 'org.springframework.cloud', name: 'spring-cloud-aws-messaging', version: '2.2.6.RELEASE'
+//    // https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-sqs aws sqs
+    // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-aws
+    implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-aws', version: '2.2.6.RELEASE'
+    //  https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-redis
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis', version: '2.6.1'
+    // https://mvnrepository.com/artifact/net.nurigo/javaSDK coolsms문자
+    implementation group: 'net.nurigo', name: 'javaSDK', version: '2.2'
+    // https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple json
+    implementation group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
+    //querydsl 추가
+    implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
+    implementation "com.querydsl:querydsl-apt:${queryDslVersion}"
+    // https://mvnrepository.com/artifact/com.auth0/java-jwt jwt
+    implementation group: 'com.auth0', name: 'java-jwt', version: '3.18.2'
+    // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-aop aop
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop', version: '2.6.3'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    compileOnly 'org.projectlombok:lombok'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    runtimeOnly 'mysql:mysql-connector-java'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+
+}
+//querydsl 추가 시작
+def querydslDir = "$buildDir/generated/querydsl"
+
+querydsl {
+    jpa = true
+    querydslSourcesDir = querydslDir
+}
+sourceSets {
+    main.java.srcDir querydslDir
+}
+compileQuerydsl {
+    options.annotationProcessorPath = configurations.querydsl
+}
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+    querydsl.extendsFrom compileClasspath
+}
+
+// 여기부터 gradle 5.0 이후로 추가
+configurations {
+    querydsl.extendsFrom compileClasspath
+}
+
+compileQuerydsl {
+    options.annotationProcessorPath = configurations.querydsl
+}
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
