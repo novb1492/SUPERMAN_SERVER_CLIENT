@@ -70,6 +70,8 @@ public class ProductRepoImpl implements ProductRepoCustom {
                 return productEntity.productKindEntity.id.eq(categoryId).and(productEntity.name.contains(val));
             }
             return productEntity.productKindEntity.id.eq(categoryId);
+        }else if(productCategoryEntity==null&&!UtilService.confirmNull(val)){
+            return productEntity.name.contains(val);
         }
         return null;
     }

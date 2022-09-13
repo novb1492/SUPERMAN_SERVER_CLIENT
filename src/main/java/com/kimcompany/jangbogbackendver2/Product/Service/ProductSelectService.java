@@ -42,7 +42,7 @@ public class ProductSelectService {
     public Page<SelectListDto>selectForList(SearchCondition searchCondition){
         StoreEntity storeEntity = storeRepo.findInsteadOfId(searchCondition.getName(), searchCondition.getAddr(), deleteState).orElseThrow(() -> new IllegalArgumentException("등록되지 않은 매장입니다"));
         searchCondition.setStoreId(storeEntity.getId());
-        searchCondition.setPageSize(1);
+        searchCondition.setPageSize(2);
         Page<SelectListDto> selectListDtos = productRepo.selectForList(searchCondition);
         for(SelectListDto s:selectListDtos.getContent()){
             ProductEventEntity productEventEntity = productEventRepo.findProductId(s.getId(), Timestamp.valueOf(LocalDateTime.now())).orElseGet(() -> null);
