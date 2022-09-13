@@ -16,6 +16,8 @@ public class SelectDto {
     private String price;
     private String name;
     private boolean event;
+    private long eventId;
+    private String eventName;
 
     @QueryProjection
     public SelectDto(ProductEntity productEntity) {

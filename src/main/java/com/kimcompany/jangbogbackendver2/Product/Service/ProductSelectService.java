@@ -60,6 +60,8 @@ public class ProductSelectService {
         if(productEventEntity!=null){
             selectDto.setEvent(true);
             selectDto.setPrice(productEventEntity.getEventPrice());
+            selectDto.setEventId(productEventEntity.getId());
+            selectDto.setEventName(productEventEntity.getName());
         }
         return selectDto;
     }
