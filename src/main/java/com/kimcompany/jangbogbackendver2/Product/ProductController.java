@@ -31,4 +31,13 @@ public class ProductController {
         return ResponseEntity.ok().body(productSelectService.selectForList(new SearchCondition(an,pn,request)));
     }
 
+    /**
+     * 제품조회 api
+     * @param id
+     * @return
+     */
+    @RequestMapping(value = "/product/{id}",method = RequestMethod.GET)
+    public ResponseEntity<?>selectById(@PathVariable String id){
+        return ResponseEntity.ok().body(productSelectService.selectForId(Long.parseLong(id)));
+    }
 }

@@ -1,6 +1,7 @@
 package com.kimcompany.jangbogbackendver2.Product.Service;
 
 import com.kimcompany.jangbogbackendver2.Product.Dto.SearchCondition;
+import com.kimcompany.jangbogbackendver2.Product.Dto.SelectDto;
 import com.kimcompany.jangbogbackendver2.Product.Dto.SelectListDto;
 import com.kimcompany.jangbogbackendver2.Product.Repo.ProductRepo;
 import com.kimcompany.jangbogbackendver2.ProductEvent.Model.ProductEventEntity;
@@ -53,4 +54,14 @@ public class ProductSelectService {
 
         return selectListDtos;
     }
+    public SelectDto selectForId(long id){
+        SelectDto selectDto = productRepo.findId(id).orElseThrow(() -> new IllegalArgumentException("찾을 수 없는 상품 입니다"));
+        ProductEventEntity productEventEntity = productEventRepo.findProductId(selectDto.getId(), Timestamp.valueOf(LocalDateTime.now())).orElseGet(() -> null);
+        if(productEventEntity!=null){
+            selectDto.setEvent(true);
+            selectDto.setPrice(productEventEntity.getEventPrice());
+        }
+        return selectDto;
+    }
+
 }
