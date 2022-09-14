@@ -3,6 +3,7 @@ package com.kimcompany.jangbogbackendver2.Cart.Dto;
 import com.kimcompany.jangbogbackendver2.Cart.Model.CartEntity;
 import com.kimcompany.jangbogbackendver2.Product.Model.ProductEntity;
 import com.kimcompany.jangbogbackendver2.ProductEvent.Model.ProductEventEntity;
+import com.kimcompany.jangbogbackendver2.Util.UtilService;
 import com.querydsl.core.annotations.QueryProjection;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,8 @@ public class SelectListDto {
     private String productName;
     private long  eventId;
     private String eventName;
+    private String totalPrice;
+    private String price;
 
 
     @QueryProjection
@@ -30,10 +33,14 @@ public class SelectListDto {
             eventFlag=true;
             eventId=productEventEntity.getId();
             eventName=productEventEntity.getName();
+            this.price=productEventEntity.getEventPrice();
         }else{
             eventFlag=false;
             eventId=0;
             eventName=null;
+            this.price = productEntity.getPrice();
         }
+        int priceInt = Integer.parseInt(price.replace(",", ""));
+        totalPrice= UtilService.confirmPrice(priceInt*count);
     }
 }

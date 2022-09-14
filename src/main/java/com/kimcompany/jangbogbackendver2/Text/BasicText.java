@@ -46,7 +46,7 @@ public class BasicText {
     public static int deliverDoneState = 100;
     public static int deliverCancelState = 10;
 
-    public static int cartSize=1;
+    public static int cartSize=2;
 
 
 }

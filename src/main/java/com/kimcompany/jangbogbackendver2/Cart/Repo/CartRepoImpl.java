@@ -40,7 +40,7 @@ public class CartRepoImpl implements CartRepoCustom {
                 .leftJoin(productEventEntity)
                 .on(cartEntity.productEventEntities.id.eq(productEventEntity.id))
                 .where(cartEntity.clientEntity.id.eq(searchCondition.getUserId()),cartEntity.commonColumn.state.eq(trueStateNum))
-                .orderBy(productEntity.id.desc())
+                .orderBy(cartEntity.id.desc())
                 .offset(pageRequest.getOffset())
                 .limit(pageRequest.getPageSize())
                 .fetch ();

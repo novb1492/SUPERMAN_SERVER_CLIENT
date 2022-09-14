@@ -1,6 +1,8 @@
 package com.kimcompany.jangbogbackendver2.Cart;
 
+import com.kimcompany.jangbogbackendver2.Cart.Dto.SearchCondition;
 import com.kimcompany.jangbogbackendver2.Cart.Dto.TryInsertDto;
+import com.kimcompany.jangbogbackendver2.Cart.Service.CartSelectService;
 import com.kimcompany.jangbogbackendver2.Cart.Service.CartService;
 import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONObject;
@@ -10,12 +12,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 @RequiredArgsConstructor
 @RestController
 public class CartController {
     private final CartService cartService;
+    private final CartSelectService cartSelectService;
 
     /**
      * 장바구니 담는 요청
@@ -30,4 +34,8 @@ public class CartController {
         return ResponseEntity.ok(response);
     }
 
+    @RequestMapping(value = "/cart/list",method = RequestMethod.GET)
+    public ResponseEntity<?>save(HttpServletRequest request){
+        return ResponseEntity.ok(cartSelectService.selectForList(new SearchCondition(Integer.parseInt(request.getParameter("page")))));
+    }
 }
