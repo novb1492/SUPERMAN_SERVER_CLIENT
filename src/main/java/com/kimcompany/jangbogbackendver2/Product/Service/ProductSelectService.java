@@ -44,6 +44,9 @@ public class ProductSelectService {
         searchCondition.setStoreId(storeEntity.getId());
         searchCondition.setPageSize(2);
         Page<SelectListDto> selectListDtos = productRepo.selectForList(searchCondition);
+        /*
+            제품별 이벤트 있는지 검사
+         */
         for(SelectListDto s:selectListDtos.getContent()){
             ProductEventEntity productEventEntity = productEventRepo.findProductId(s.getId(), Timestamp.valueOf(LocalDateTime.now()),trueStateNum).orElseGet(() -> null);
             if(productEventEntity!=null){
@@ -56,6 +59,9 @@ public class ProductSelectService {
     public SelectDto selectForId(long id){
         SelectDto selectDto = productRepo.findId(id,deleteState).orElseThrow(() -> new IllegalArgumentException("찾을 수 없는 상품 입니다"));
         ProductEventEntity productEventEntity = productEventRepo.findProductId(selectDto.getId(), Timestamp.valueOf(LocalDateTime.now()),trueStateNum).orElseGet(() -> null);
+        /*
+            이벤트가 있는지 검사
+         */
         if(productEventEntity!=null){
             selectDto.setEvent(true);
             selectDto.setPrice(productEventEntity.getEventPrice());
