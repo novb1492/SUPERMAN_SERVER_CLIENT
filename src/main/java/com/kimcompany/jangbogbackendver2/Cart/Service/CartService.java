@@ -1,6 +1,7 @@
 package com.kimcompany.jangbogbackendver2.Cart.Service;
 
 import com.kimcompany.jangbogbackendver2.Cart.Dto.TryInsertDto;
+import com.kimcompany.jangbogbackendver2.Cart.Dto.TryUpdateCountDto;
 import com.kimcompany.jangbogbackendver2.Cart.Dto.tryDeleteDto;
 import com.kimcompany.jangbogbackendver2.Cart.Model.CartEntity;
 import com.kimcompany.jangbogbackendver2.Cart.Repo.CartRepo;
@@ -61,6 +62,13 @@ public class CartService {
         List<Long> ids = tryDeleteDto.getIds();
         for(Long id:ids){
             cartRepo.updateStateById(deleteState,id,UtilService.getLoginUserId());
+        }
+    }
+    @Transactional
+    public void changeCount(TryUpdateCountDto tryUpdateCountDto){
+        Integer integer = cartRepo.updateCountById(tryUpdateCountDto.getId(), UtilService.getLoginUserId(), tryUpdateCountDto.getCount());
+        if(integer!=1){
+            throw new IllegalArgumentException("수량변경에 실패했습니다");
         }
     }
 

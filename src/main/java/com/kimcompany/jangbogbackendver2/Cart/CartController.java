@@ -2,6 +2,7 @@ package com.kimcompany.jangbogbackendver2.Cart;
 
 import com.kimcompany.jangbogbackendver2.Cart.Dto.SearchCondition;
 import com.kimcompany.jangbogbackendver2.Cart.Dto.TryInsertDto;
+import com.kimcompany.jangbogbackendver2.Cart.Dto.TryUpdateCountDto;
 import com.kimcompany.jangbogbackendver2.Cart.Dto.tryDeleteDto;
 import com.kimcompany.jangbogbackendver2.Cart.Service.CartSelectService;
 import com.kimcompany.jangbogbackendver2.Cart.Service.CartService;
@@ -35,17 +36,40 @@ public class CartController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * 장바구니 조회
+     * @param request
+     * @return
+     */
     @RequestMapping(value = "/cart/list",method = RequestMethod.GET)
     public ResponseEntity<?>save(HttpServletRequest request){
         return ResponseEntity.ok(cartSelectService.selectForList(new SearchCondition(Integer.parseInt(request.getParameter("page")))));
     }
 
+    /**
+     * 장바구니 상품 삭제
+     * @param tryDeleteDto
+     * @return
+     */
     @RequestMapping(value = "/cart",method = RequestMethod.DELETE)
     public ResponseEntity<?>deleteCart(@Valid @RequestBody tryDeleteDto tryDeleteDto){
         System.out.println(tryDeleteDto.toString());
         cartService.deleteById(tryDeleteDto);
         JSONObject response=new JSONObject();
         response.put("message", "장바구니에서 제거되었습니다");
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 장바구니 개수 수정
+     * @param tryUpdateCountDto
+     * @return
+     */
+    @RequestMapping(value = "/cart",method = RequestMethod.PUT)
+    public ResponseEntity<?>changeCart(@Valid @RequestBody TryUpdateCountDto tryUpdateCountDto){
+        cartService.changeCount(tryUpdateCountDto);
+        JSONObject response=new JSONObject();
+        response.put("message", "수량이 변경되었습니다");
         return ResponseEntity.ok(response);
     }
 }
