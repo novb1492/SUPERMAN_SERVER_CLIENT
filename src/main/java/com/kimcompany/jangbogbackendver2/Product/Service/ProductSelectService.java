@@ -21,8 +21,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.kimcompany.jangbogbackendver2.Text.BasicText.deleteState;
-import static com.kimcompany.jangbogbackendver2.Text.BasicText.productListPageSize;
+import static com.kimcompany.jangbogbackendver2.Text.BasicText.*;
 
 @Service
 @RequiredArgsConstructor
@@ -46,7 +45,7 @@ public class ProductSelectService {
         searchCondition.setPageSize(2);
         Page<SelectListDto> selectListDtos = productRepo.selectForList(searchCondition);
         for(SelectListDto s:selectListDtos.getContent()){
-            ProductEventEntity productEventEntity = productEventRepo.findProductId(s.getId(), Timestamp.valueOf(LocalDateTime.now())).orElseGet(() -> null);
+            ProductEventEntity productEventEntity = productEventRepo.findProductId(s.getId(), Timestamp.valueOf(LocalDateTime.now()),trueStateNum).orElseGet(() -> null);
             if(productEventEntity!=null){
                 s.setPrice(productEventEntity.getEventPrice());
             }
@@ -55,8 +54,8 @@ public class ProductSelectService {
         return selectListDtos;
     }
     public SelectDto selectForId(long id){
-        SelectDto selectDto = productRepo.findId(id).orElseThrow(() -> new IllegalArgumentException("찾을 수 없는 상품 입니다"));
-        ProductEventEntity productEventEntity = productEventRepo.findProductId(selectDto.getId(), Timestamp.valueOf(LocalDateTime.now())).orElseGet(() -> null);
+        SelectDto selectDto = productRepo.findId(id,deleteState).orElseThrow(() -> new IllegalArgumentException("찾을 수 없는 상품 입니다"));
+        ProductEventEntity productEventEntity = productEventRepo.findProductId(selectDto.getId(), Timestamp.valueOf(LocalDateTime.now()),trueStateNum).orElseGet(() -> null);
         if(productEventEntity!=null){
             selectDto.setEvent(true);
             selectDto.setPrice(productEventEntity.getEventPrice());

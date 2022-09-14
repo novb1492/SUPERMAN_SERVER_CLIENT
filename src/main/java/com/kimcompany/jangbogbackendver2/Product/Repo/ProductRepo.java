@@ -10,7 +10,10 @@ import java.util.Optional;
 
 public interface ProductRepo extends JpaRepository<ProductEntity,Long>,ProductRepoCustom {
     //---------------------------
-    @Query("select new com.kimcompany.jangbogbackendver2.Product.Dto.SelectDto(p)  from ProductEntity p where p.id=:id")
-    Optional<SelectDto> findId(@Param("id") long id);
+    @Query("select new com.kimcompany.jangbogbackendver2.Product.Dto.SelectDto(p)  from ProductEntity p where p.id=:id and p.commonColumn.state<>:state")
+    Optional<SelectDto> findId(@Param("id") long id,@Param("state") int deleteState);
+
+    @Query("select p  from ProductEntity p where p.id=:id and p.commonColumn.state<>:state")
+    Optional<ProductEntity> findIdWithEntity(@Param("id") long id,@Param("state") int deleteState);
 
 }
