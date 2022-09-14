@@ -1,6 +1,7 @@
 package com.kimcompany.jangbogbackendver2.Cart.Service;
 
 import com.kimcompany.jangbogbackendver2.Cart.Dto.TryInsertDto;
+import com.kimcompany.jangbogbackendver2.Cart.Dto.tryDeleteDto;
 import com.kimcompany.jangbogbackendver2.Cart.Model.CartEntity;
 import com.kimcompany.jangbogbackendver2.Cart.Repo.CartRepo;
 import com.kimcompany.jangbogbackendver2.Common.CommonColumn;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static com.kimcompany.jangbogbackendver2.Text.BasicText.deleteState;
 import static com.kimcompany.jangbogbackendver2.Text.BasicText.trueStateNum;
@@ -53,6 +55,13 @@ public class CartService {
                 .count(tryInsertDto.getCount())
                 .price(price).build();
         cartRepo.save(cartEntity);
+    }
+    @Transactional
+    public void deleteById(tryDeleteDto tryDeleteDto){
+        List<Long> ids = tryDeleteDto.getIds();
+        for(Long id:ids){
+            cartRepo.updateStateById(deleteState,id,UtilService.getLoginUserId());
+        }
     }
 
 }

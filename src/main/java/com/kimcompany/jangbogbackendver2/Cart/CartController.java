@@ -2,6 +2,7 @@ package com.kimcompany.jangbogbackendver2.Cart;
 
 import com.kimcompany.jangbogbackendver2.Cart.Dto.SearchCondition;
 import com.kimcompany.jangbogbackendver2.Cart.Dto.TryInsertDto;
+import com.kimcompany.jangbogbackendver2.Cart.Dto.tryDeleteDto;
 import com.kimcompany.jangbogbackendver2.Cart.Service.CartSelectService;
 import com.kimcompany.jangbogbackendver2.Cart.Service.CartService;
 import lombok.RequiredArgsConstructor;
@@ -37,5 +38,14 @@ public class CartController {
     @RequestMapping(value = "/cart/list",method = RequestMethod.GET)
     public ResponseEntity<?>save(HttpServletRequest request){
         return ResponseEntity.ok(cartSelectService.selectForList(new SearchCondition(Integer.parseInt(request.getParameter("page")))));
+    }
+
+    @RequestMapping(value = "/cart",method = RequestMethod.DELETE)
+    public ResponseEntity<?>deleteCart(@Valid @RequestBody tryDeleteDto tryDeleteDto){
+        System.out.println(tryDeleteDto.toString());
+        cartService.deleteById(tryDeleteDto);
+        JSONObject response=new JSONObject();
+        response.put("message", "장바구니에서 제거되었습니다");
+        return ResponseEntity.ok(response);
     }
 }
