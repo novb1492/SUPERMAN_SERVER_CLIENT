@@ -2,6 +2,7 @@ package com.kimcompany.jangbogbackendver2.Product;
 
 import com.kimcompany.jangbogbackendver2.Product.Dto.SearchCondition;
 import com.kimcompany.jangbogbackendver2.Product.Dto.TryInsertDto;
+import com.kimcompany.jangbogbackendver2.Product.Service.ProductSelectService;
 import com.kimcompany.jangbogbackendver2.Product.Service.ProductService;
 import com.kimcompany.jangbogbackendver2.ProductKind.Service.ProductKindSelectService;
 import lombok.RequiredArgsConstructor;
@@ -16,32 +17,27 @@ import java.util.Optional;
 @RestController
 @RequiredArgsConstructor
 public class ProductController {
-    private final ProductService productService;
+    private final ProductSelectService productSelectService;
 
     /**
-     * 상품등록
-     * @param tryInsertDto
-     * @return
-     */
-    @RequestMapping(value = "/manage/product/save",method = RequestMethod.POST)
-    public ResponseEntity<?>save(@Valid @RequestBody TryInsertDto tryInsertDto){
-        productService.save(tryInsertDto);
-        JSONObject response = new JSONObject();
-        response.put("message", "상품 저장완료");
-        return ResponseEntity.ok().body(response);
-    }
-
-    /**
-     * 상품리스트조회
-     * @param storeId
+     * 매장별 제품조회
+     * @param an
+     * @param pn
      * @param request
      * @return
      */
-    @RequestMapping(value = "/user/product/list/{storeId}",method = RequestMethod.GET)
-    public ResponseEntity<?>selectForList(@PathVariable String storeId, HttpServletRequest request){
-        SearchCondition searchCondition = new SearchCondition(Integer.parseInt(request.getParameter("page").toString())
-                , Optional.ofNullable(request.getParameter("category")).orElseGet(()->null)
-                , Optional.ofNullable(request.getParameter("val")).orElseGet(()->null));
-        return ResponseEntity.ok().body(productService.selectForList(Long.parseLong(storeId), searchCondition));
+    @RequestMapping(value = "/product/list/{an}/{pn}",method = RequestMethod.GET)
+    public ResponseEntity<?>selectList(@PathVariable String an, @PathVariable String pn,HttpServletRequest request){
+        return ResponseEntity.ok().body(productSelectService.selectForList(new SearchCondition(an,pn,request)));
+    }
+
+    /**
+     * 제품조회 api
+     * @param id
+     * @return
+     */
+    @RequestMapping(value = "/product/{id}",method = RequestMethod.GET)
+    public ResponseEntity<?>selectById(@PathVariable String id){
+        return ResponseEntity.ok().body(productSelectService.selectForId(Long.parseLong(id)));
     }
 }

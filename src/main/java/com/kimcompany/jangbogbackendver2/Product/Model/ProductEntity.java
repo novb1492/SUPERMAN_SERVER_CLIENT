@@ -1,7 +1,9 @@
 package com.kimcompany.jangbogbackendver2.Product.Model;
 
 import com.kimcompany.jangbogbackendver2.Common.CommonColumn;
+import com.kimcompany.jangbogbackendver2.Deliver.Model.DeliverDetailEntity;
 import com.kimcompany.jangbogbackendver2.Member.Model.MemberEntity;
+import com.kimcompany.jangbogbackendver2.ProductEvent.Model.ProductEventEntity;
 import com.kimcompany.jangbogbackendver2.ProductKind.Model.ProductCategoryEntity;
 import com.kimcompany.jangbogbackendver2.Store.Model.StoreEntity;
 import lombok.AllArgsConstructor;
@@ -11,6 +13,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -57,5 +60,8 @@ public class ProductEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PRODUCT_CATEGORY_ID",referencedColumnName ="PRODUCT_CATEGORY_ID" ,nullable = false)
     private ProductCategoryEntity productKindEntity;
+
+    @OneToMany(fetch = FetchType.LAZY,mappedBy = "productEntity")
+    private List<ProductEventEntity> productEventEntities;
 
 }

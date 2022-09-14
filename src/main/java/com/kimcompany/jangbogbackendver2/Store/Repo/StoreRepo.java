@@ -12,4 +12,7 @@ public interface StoreRepo extends JpaRepository<StoreEntity,Long>,StoreRepoCust
 
     @Query("select new com.kimcompany.jangbogbackendver2.Store.Dto.SelectNotyDto(s.name,s.addressColumn.address) from StoreEntity  s where s.id=:id and s.commonColumn.state<>:state")
     Optional<SelectNotyDto>findByIdForNoty(@Param("id")long id,@Param("state")int deleteState);
+
+    @Query("select s from StoreEntity  s where s.name=:name and s.addressColumn.address=:addr and s.commonColumn.state<>:state")
+    Optional<StoreEntity>findInsteadOfId(@Param("name")String name,@Param("addr")String addr,@Param("state")int deleteState);
 }
