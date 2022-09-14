@@ -50,6 +50,7 @@ public class CartService {
         CartEntity cartEntity = CartEntity.builder().productEventEntities(productEventEntity)
                 .clientEntity(ClientEntity.builder().id(UtilService.getLoginUserId()).build())
                 .commonColumn(CommonColumn.set(trueStateNum)).productEntity(ProductEntity.builder().id(productId).build())
+                .count(tryInsertDto.getCount())
                 .price(price).build();
         cartRepo.save(cartEntity);
     }

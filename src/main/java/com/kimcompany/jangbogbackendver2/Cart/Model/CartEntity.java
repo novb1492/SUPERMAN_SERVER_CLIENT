@@ -36,6 +36,9 @@ public class CartEntity {
     @Column(name = "PRODUCT_PRICE",nullable = false,length = 20)
     private String price;
 
+    @Column(name = "CART_COUNT",nullable = false)
+    private Integer count;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "CLIENT_ID",referencedColumnName = "CLIENT_ID",nullable = false)
     private ClientEntity clientEntity;
