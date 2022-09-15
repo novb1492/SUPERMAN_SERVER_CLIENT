@@ -36,4 +36,7 @@ public interface CardRepo extends JpaRepository<CardEntity,Long> {
 
     @Query("select c from CardEntity c where c.commonColumn.state=:state and c.commonColumn.created between :startDate  and :endDate and c.commonPaymentEntity.storeEntity.id=:storeId")
     List<CardEntity> findByPeriod(@Param("state") int state, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate,@Param("storeId")long storeId);
+
+    @Query("select  c from CardEntity c where c.commonPaymentEntity.pOid=:oid")
+    Optional<CardEntity> findAtOid(@Param("oid") String oid);
 }

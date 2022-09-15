@@ -32,6 +32,14 @@ import java.util.*;
 import static com.kimcompany.jangbogbackendver2.Text.BasicText.*;
 
 public class UtilService {
+    public static String getRandomNum(int len) {
+        String num="";
+        Random random=new Random();
+        for(int i=0;i<len;i++){
+            num+=Integer.toString(random.nextInt(10));
+        }
+        return num;
+    }
     public static void test(HttpServletRequest request){
         Cookie[] c = request.getCookies();
         for(Cookie cc:c){

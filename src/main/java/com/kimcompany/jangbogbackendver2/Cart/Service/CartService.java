@@ -5,6 +5,7 @@ import com.kimcompany.jangbogbackendver2.Cart.Model.CartEntity;
 import com.kimcompany.jangbogbackendver2.Cart.Repo.CartRepo;
 import com.kimcompany.jangbogbackendver2.Common.CommonColumn;
 import com.kimcompany.jangbogbackendver2.Member.Model.ClientEntity;
+import com.kimcompany.jangbogbackendver2.Payment.Repo.CardRepo;
 import com.kimcompany.jangbogbackendver2.Product.Model.ProductEntity;
 import com.kimcompany.jangbogbackendver2.Product.Repo.ProductRepo;
 import com.kimcompany.jangbogbackendver2.ProductEvent.Model.ProductEventEntity;
@@ -13,6 +14,9 @@ import com.kimcompany.jangbogbackendver2.Store.Model.StoreEntity;
 import com.kimcompany.jangbogbackendver2.Text.BasicText;
 import com.kimcompany.jangbogbackendver2.Util.UtilService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.json.simple.JSONObject;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,11 +31,13 @@ import static com.kimcompany.jangbogbackendver2.Text.BasicText.trueStateNum;
 
 @RequiredArgsConstructor
 @Service
+@Slf4j
 public class CartService {
 
     private final CartRepo cartRepo;
     private final ProductEventRepo productEventRepo;
     private final ProductRepo productRepo;
+    private final RedisTemplate<String,Object> redisTemplate;
 
     @Transactional
     public void save(TryInsertDto tryInsertDto){
@@ -57,6 +63,9 @@ public class CartService {
                 .price(price).build();
         cartRepo.save(cartEntity);
     }
+    private void confirmSame(long storeId){
+
+    }
     @Transactional
     public void deleteById(tryDeleteDto tryDeleteDto){
         List<Long> ids = tryDeleteDto.getIds();
@@ -76,13 +85,15 @@ public class CartService {
         List<Map<String, Object>> payments = tryPaymentDto.getPayments();
         Map<Long, String> storeDeliverPrices = new HashMap<>();
         Map<Long, Integer> totalPriceByStores = new HashMap<>();
+        Map<Long, Map<String,Map<String,Object>>> orderInfos = new HashMap<>();
+        long userId = UtilService.getLoginUserId();
         for(Map<String,Object>payment:payments){
             Long cartId =Long.parseLong(Optional.ofNullable(payment.get("cartId")).orElseThrow(()->new IllegalArgumentException("카트 아이디값이 없습니다")).toString());
             int count = Integer.parseInt(Optional.ofNullable(payment.get("count")).orElseThrow(() -> new IllegalArgumentException("주문수량이 없습니다")).toString());
             if(count<=0){
                 throw new IllegalArgumentException("최소 구매가능 수량은 1개입니다");
             }
-            SelectForPaymentDto selectForPaymentDto = cartRepo.selectForPayment(cartId, trueStateNum, UtilService.getLoginUserId()).orElseThrow(() -> new IllegalArgumentException("장바구니에서 해당 제품을 찾을 수 없습니다"));
+            SelectForPaymentDto selectForPaymentDto = cartRepo.selectForPayment(cartId, trueStateNum, userId).orElseThrow(() -> new IllegalArgumentException("장바구니에서 해당 제품을 찾을 수 없습니다"));
             /*
                 메장 영업시간인지 검증
              */
@@ -94,12 +105,14 @@ public class CartService {
             ProductEntity productEntity = selectForPaymentDto.getProductEntity();
             int price = Integer.parseInt(productEntity.getPrice().replace(",",""));
             ProductEventEntity productEventEntity = selectForPaymentDto.getProductEventEntity();
+            Long eventId = 0L;
             if(productEventEntity!=null){
                 /*
                     적용되는 이벤트가 있다면 해당일인지 확인하고 가격적용
                 */
                 if (LocalDateTime.now().isAfter(productEventEntity.getStartDate().toLocalDateTime())&&LocalDateTime.now().isBefore(productEventEntity.getEndDate().toLocalDateTime())){
                     price = Integer.parseInt(productEventEntity.getEventPrice().replace(",", ""));
+                    eventId = productEventEntity.getId();
                 }
             }
             /*
@@ -115,16 +128,55 @@ public class CartService {
             if(!storeDeliverPrices.containsKey(storeId)){
                 storeDeliverPrices.put(storeId, storeEntity.getMinOrderPrice()+","+storeEntity.getName());
             }
+            /*
+                검증위해 주문별담기
+             */
+            Map<String, Object> info = new HashMap<>();
+            info.put("price", price);
+            info.put("count", count);
+            info.put("eventId", eventId);
+            info.put("productId", productEntity.getId());
+            info.put("address", tryPaymentDto.getPostCode() + "," + tryPaymentDto.getAddress() + "," + tryPaymentDto.getDetailAddress());
+            info.put("userId",userId);
+            info.put("cartId", cartId);
+            Map<String, Map<String, Object>> infoMap=Optional.ofNullable(orderInfos.get(storeId)).orElseGet(() -> new HashMap<>());
+            infoMap.put(Long.toString(cartId),info);
+            orderInfos.put(storeId, infoMap);
         }
         /*
-            매장별 최소금액 초과하는지 검사
+            매장별 최소금액 초과하는지 검사 및 매장별 총합계금액 분배
          */
+        int requestTotalPrice=0;
         for(Map.Entry<Long, String> storeDeliverPrice:storeDeliverPrices.entrySet()){
             String[] val = storeDeliverPrice.getValue().split(",");
-            if(totalPriceByStores.get(storeDeliverPrice.getKey())<Integer.parseInt(val[0])){
+            long storeId = storeDeliverPrice.getKey();
+            int priceByStore = totalPriceByStores.get(storeId);
+            if(priceByStore<Integer.parseInt(val[0])){
                 throw new IllegalArgumentException("매장 최소 주문 금액을 못 맞춘 주문이 있습니다 매장:" + val[1] + "최소주문금액:" + val[0] + "주문금액:" + totalPriceByStores.get(storeDeliverPrice.getKey()));
             }
+            requestTotalPrice += priceByStore;
+            /*
+                매장별 총합가격 추가
+             */
+            Map<String, Map<String, Object>> orderInfo = orderInfos.get(storeId);
+            Map<String, Object> totalPrice = new HashMap<>();
+            totalPrice.put("totalPrice", priceByStore);
+            orderInfo.put("totalPrice", totalPrice);
+            orderInfos.put(storeId, orderInfo);
         }
+        String oid= UtilService.getRandomNum(10);
+        String key = userId + "payment" + oid;
+        redisTemplate.opsForHash().put(key, key, orderInfos);
+        /*
+            응답 생성
+         */
+        JSONObject response = new JSONObject();
+        response.put("userId",userId);
+        response.put("oid",oid);
+        response.put("price", requestTotalPrice);
+        log.info("pg사 요청값:{}",response);
+        log.info("주문 분리값:{}",orderInfos);
+
     }
 
     private void confirmStoreTime(String  storeOpenTime,String storeCloseTime){

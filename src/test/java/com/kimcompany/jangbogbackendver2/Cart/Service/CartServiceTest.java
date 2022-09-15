@@ -46,7 +46,14 @@ class CartServiceTest {
         stringObjectMap2.put("cartId", 5);
         stringObjectMap2.put("count",7);
         strings.add(stringObjectMap2);
+        Map<String, Object> stringObjectMap3 = new HashMap<>();
+        stringObjectMap3.put("cartId", 6);
+        stringObjectMap3.put("count",10);
+        strings.add(stringObjectMap3);
         tryPaymentDto.setPayments(strings);
+        tryPaymentDto.setAddress("서울어딘가");
+        tryPaymentDto.setPostCode("0000");
+        tryPaymentDto.setDetailAddress("fdf");
         cartService.makePaymentInfo(tryPaymentDto);
     }
 }
