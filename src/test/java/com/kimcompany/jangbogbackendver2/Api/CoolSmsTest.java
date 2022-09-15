@@ -13,6 +13,10 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class CoolSmsTest {
@@ -33,5 +37,13 @@ class CoolSmsTest {
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+    @Test
+    void test2(){
+        System.out.println("1,000,000".replace(",",""));
+        Map<Long, Integer> totalPriceByStore = new HashMap<>();
+        int priceAndCount = 100 * 2;
+        int totalPrice = Optional.ofNullable( totalPriceByStore.get(1)).orElseGet(()->0);
+        System.out.println(totalPrice);
     }
 }

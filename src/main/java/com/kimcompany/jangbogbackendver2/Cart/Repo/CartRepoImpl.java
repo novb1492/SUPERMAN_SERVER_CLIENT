@@ -1,12 +1,11 @@
 package com.kimcompany.jangbogbackendver2.Cart.Repo;
 
-import com.kimcompany.jangbogbackendver2.Cart.Dto.QSelectListDto;
-import com.kimcompany.jangbogbackendver2.Cart.Dto.SearchCondition;
-import com.kimcompany.jangbogbackendver2.Cart.Dto.SelectListDto;
+import com.kimcompany.jangbogbackendver2.Cart.Dto.*;
 import com.kimcompany.jangbogbackendver2.Cart.Model.QCartEntity;
 import com.kimcompany.jangbogbackendver2.ProductEvent.Model.QProductEventEntity;
 import com.kimcompany.jangbogbackendver2.ProductKind.Model.ProductCategoryEntity;
 import com.kimcompany.jangbogbackendver2.ProductKind.Repo.ProductCategoryEntityRepo;
+import com.kimcompany.jangbogbackendver2.Store.Model.QStoreEntity;
 import com.kimcompany.jangbogbackendver2.Text.BasicText;
 import com.kimcompany.jangbogbackendver2.Util.UtilService;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -18,10 +17,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.support.PageableExecutionUtils;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.kimcompany.jangbogbackendver2.Cart.Model.QCartEntity.cartEntity;
 import static com.kimcompany.jangbogbackendver2.Product.Model.QProductEntity.productEntity;
 import static com.kimcompany.jangbogbackendver2.ProductEvent.Model.QProductEventEntity.productEventEntity;
+import static com.kimcompany.jangbogbackendver2.Store.Model.QStoreEntity.storeEntity;
 import static com.kimcompany.jangbogbackendver2.Text.BasicText.deleteState;
 import static com.kimcompany.jangbogbackendver2.Text.BasicText.trueStateNum;
 
@@ -55,6 +56,20 @@ public class CartRepoImpl implements CartRepoCustom {
         return selectListDtos2;
     }
 
+    @Override
+    public Optional<SelectForPaymentDto> selectForPayment(Long cartId, int trueState, Long userId) {
+        return Optional.ofNullable(jpaQueryFactory.select(new QSelectForPaymentDto(cartEntity,productEntity,productEventEntity, storeEntity))
+                .from(cartEntity)
+                .innerJoin(productEntity)
+                .on(cartEntity.productEntity.id.eq(productEntity.id))
+                        .leftJoin(storeEntity)
+                        .on(productEntity.storeEntity.id.eq(storeEntity.id))
+                        .leftJoin(productEventEntity)
+                        .on(cartEntity.productEventEntities.id.eq(productEventEntity.id))
+                        .where(cartEntity.id.eq(cartId),cartEntity.commonColumn.state.eq(trueState),cartEntity.clientEntity.id.eq(userId))
+                .fetchOne())
+                ;
+    }
 
 
 }

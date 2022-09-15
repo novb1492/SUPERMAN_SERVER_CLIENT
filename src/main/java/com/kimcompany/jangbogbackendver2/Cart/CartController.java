@@ -1,9 +1,6 @@
 package com.kimcompany.jangbogbackendver2.Cart;
 
-import com.kimcompany.jangbogbackendver2.Cart.Dto.SearchCondition;
-import com.kimcompany.jangbogbackendver2.Cart.Dto.TryInsertDto;
-import com.kimcompany.jangbogbackendver2.Cart.Dto.TryUpdateCountDto;
-import com.kimcompany.jangbogbackendver2.Cart.Dto.tryDeleteDto;
+import com.kimcompany.jangbogbackendver2.Cart.Dto.*;
 import com.kimcompany.jangbogbackendver2.Cart.Service.CartSelectService;
 import com.kimcompany.jangbogbackendver2.Cart.Service.CartService;
 import lombok.RequiredArgsConstructor;
@@ -68,6 +65,18 @@ public class CartController {
     @RequestMapping(value = "/cart",method = RequestMethod.PUT)
     public ResponseEntity<?>changeCart(@Valid @RequestBody TryUpdateCountDto tryUpdateCountDto){
         cartService.changeCount(tryUpdateCountDto);
+        JSONObject response=new JSONObject();
+        response.put("message", "수량이 변경되었습니다");
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 장바구니 개수 수정
+     * @param tryPaymentDto
+     * @return
+     */
+    @RequestMapping(value = "/cart/payment",method = RequestMethod.POST)
+    public ResponseEntity<?>makePaymentInfo(@Valid @RequestBody TryPaymentDto tryPaymentDto){
         JSONObject response=new JSONObject();
         response.put("message", "수량이 변경되었습니다");
         return ResponseEntity.ok(response);
