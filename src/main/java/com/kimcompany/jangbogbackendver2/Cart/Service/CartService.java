@@ -85,7 +85,7 @@ public class CartService {
         List<Map<String, Object>> payments = tryPaymentDto.getPayments();
         Map<Long, String> storeDeliverPrices = new HashMap<>();
         Map<Long, Integer> totalPriceByStores = new HashMap<>();
-        Map<Long, Map<String,Map<String,Object>>> orderInfos = new HashMap<>();
+        Map<Long, List<Map<String,Object>>> orderInfos = new HashMap<>();
         long userId = UtilService.getLoginUserId();
         for(Map<String,Object>payment:payments){
             Long cartId =Long.parseLong(Optional.ofNullable(payment.get("cartId")).orElseThrow(()->new IllegalArgumentException("카트 아이디값이 없습니다")).toString());
@@ -139,8 +139,8 @@ public class CartService {
             info.put("address", tryPaymentDto.getPostCode() + "," + tryPaymentDto.getAddress() + "," + tryPaymentDto.getDetailAddress());
             info.put("userId",userId);
             info.put("cartId", cartId);
-            Map<String, Map<String, Object>> infoMap=Optional.ofNullable(orderInfos.get(storeId)).orElseGet(() -> new HashMap<>());
-            infoMap.put(Long.toString(cartId),info);
+            List<Map<String, Object>> infoMap=Optional.ofNullable(orderInfos.get(storeId)).orElseGet(() -> new ArrayList<>());
+            infoMap.add(info);
             orderInfos.put(storeId, infoMap);
         }
         /*
@@ -158,10 +158,10 @@ public class CartService {
             /*
                 매장별 총합가격 추가
              */
-            Map<String, Map<String, Object>> orderInfo = orderInfos.get(storeId);
+            List<Map<String, Object>> orderInfo = orderInfos.get(storeId);
             Map<String, Object> totalPrice = new HashMap<>();
             totalPrice.put("totalPrice", priceByStore);
-            orderInfo.put("totalPrice", totalPrice);
+            orderInfo.add(totalPrice);
             orderInfos.put(storeId, orderInfo);
         }
         String oid= UtilService.getRandomNum(10);
