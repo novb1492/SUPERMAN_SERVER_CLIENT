@@ -164,9 +164,15 @@ public class CartService {
             orderInfo.add(totalPrice);
             orderInfos.put(storeId, orderInfo);
         }
+        /*
+            redis에 저장
+         */
+        Map<String, Object> toRedis = new HashMap<>();
+        toRedis.put("paymentInfo", orderInfos);
+        toRedis.put("confirmTotalPrice", requestTotalPrice);
         String oid= UtilService.getRandomNum(10);
         String key = userId + "payment" + oid;
-        redisTemplate.opsForHash().put(key, key, orderInfos);
+        redisTemplate.opsForHash().put(key, key, toRedis);
         /*
             응답 생성
          */
