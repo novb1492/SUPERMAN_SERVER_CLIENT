@@ -71,14 +71,12 @@ public class CartController {
     }
 
     /**
-     * 장바구니 개수 수정
+     * 결제정보생성
      * @param tryPaymentDto
      * @return
      */
     @RequestMapping(value = "/cart/payment",method = RequestMethod.POST)
     public ResponseEntity<?>makePaymentInfo(@Valid @RequestBody TryPaymentDto tryPaymentDto){
-        JSONObject response=new JSONObject();
-        response.put("message", "수량이 변경되었습니다");
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(cartService.makePaymentInfo(tryPaymentDto));
     }
 }

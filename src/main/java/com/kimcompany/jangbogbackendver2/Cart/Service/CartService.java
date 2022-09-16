@@ -63,9 +63,6 @@ public class CartService {
                 .price(price).build();
         cartRepo.save(cartEntity);
     }
-    private void confirmSame(long storeId){
-
-    }
     @Transactional
     public void deleteById(tryDeleteDto tryDeleteDto){
         List<Long> ids = tryDeleteDto.getIds();
@@ -81,7 +78,7 @@ public class CartService {
         }
     }
 
-    public void makePaymentInfo(TryPaymentDto tryPaymentDto){
+    public JSONObject makePaymentInfo(TryPaymentDto tryPaymentDto){
         List<Map<String, Object>> payments = tryPaymentDto.getPayments();
         Map<Long, String> storeDeliverPrices = new HashMap<>();
         Map<Long, Integer> totalPriceByStores = new HashMap<>();
@@ -182,6 +179,7 @@ public class CartService {
         response.put("price", requestTotalPrice);
         log.info("pg사 요청값:{}",response);
         log.info("주문 분리값:{}",orderInfos);
+        return response;
 
     }
 

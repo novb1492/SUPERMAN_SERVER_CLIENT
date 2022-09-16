@@ -14,6 +14,7 @@ public class SelectListDto {
 
     private long id;
     private boolean eventFlag;
+    private boolean eventExpireFlag=false;
     private int count;
     private long productId;
     private String productName;
