@@ -5,6 +5,7 @@ import com.kimcompany.jangbogbackendver2.Payment.Model.CardEntity;
 import com.kimcompany.jangbogbackendver2.Payment.Model.CommonPaymentEntity;
 import com.kimcompany.jangbogbackendver2.Store.Model.StoreEntity;
 import com.kimcompany.jangbogbackendver2.Text.BasicText;
+import com.kimcompany.jangbogbackendver2.Util.UtilService;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,21 +53,22 @@ public class CardResultDto {
     private Long pUserId;
     private String P_OID;
 
-    public static CardEntity dtoToEntity(CardResultDto cardResultDto){
+    public static CardEntity dtoToEntity(CardResultDto cardResultDto,Long storeId,int totalPriceByStore){
 
         return CardEntity.builder().CARD_CorpFlag(cardResultDto.getCARD_CorpFlag())
                 .CARD_EmpPrtnCode(cardResultDto.getCARD_EmpPrtnCode())
                 .CARD_NomlMobPrtnCode(cardResultDto.getCARD_NomlMobPrtnCode())
                 .commonColumn(CommonColumn.builder().state(trueStateNum).build())
                 .commonPaymentEntity(CommonPaymentEntity.builder().pAmt(cardResultDto.getPAmt()).pAuthDt(cardResultDto.getPAuthDt())
-                        .pMid(cardResultDto.pMid).pOid(cardResultDto.P_OID).prtcCnt(0).prtcRemains(0)
+                        .pMid(cardResultDto.pMid).pOid(cardResultDto.P_OID)
+                        .prtcCnt(0)
                         .pTid(cardResultDto.getP_TID())
                         .pType(cardResultDto.getPType())
                         .pUserEmail(cardResultDto.getPUserEmail())
-                        .pUserId("test")
-                        .pUserName("fdsfs")
-                        .prtcRemains(Integer.parseInt(cardResultDto.getP_CARD_APPLPRICE()))
-                        .storeEntity(StoreEntity.builder().id(1L).build()).build()).NAVERPOINT_CSHRApplAmt(cardResultDto.getNAVERPOINT_CSHRApplAmt())
+                        .pUserId(cardResultDto.getPUserName())
+                        .pUserName(cardResultDto.getPUserName())
+                        .prtcRemains(totalPriceByStore)
+                        .storeEntity(StoreEntity.builder().id(storeId).build()).build()).NAVERPOINT_CSHRApplAmt(cardResultDto.getNAVERPOINT_CSHRApplAmt())
                 .NAVERPOINT_CSHRApplYN(cardResultDto.getNAVERPOINT_CSHRApplYN())
                 .P_CARD_APPLPRICE(cardResultDto.getP_CARD_APPLPRICE())
                 .P_CARD_CHECKFLAG(cardResultDto.getP_CARD_CHECKFLAG())

@@ -168,7 +168,7 @@ public class CartService {
         toRedis.put("paymentInfo", orderInfos);
         toRedis.put("confirmTotalPrice", requestTotalPrice);
         String oid= UtilService.getRandomNum(10);
-        String key = userId + "payment" + oid;
+        String key = oid+ "payment";
         redisTemplate.opsForHash().put(key, key, toRedis);
         /*
             응답 생성

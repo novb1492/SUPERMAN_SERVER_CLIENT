@@ -3,11 +3,19 @@ package com.kimcompany.jangbogbackendver2.Payment;
 import com.kimcompany.jangbogbackendver2.Api.Kg.Dto.CardResultDto;
 import com.kimcompany.jangbogbackendver2.Api.Kg.Dto.RequestCancelPartialDto;
 import com.kimcompany.jangbogbackendver2.Api.Kg.Service.KgService;
+import com.kimcompany.jangbogbackendver2.Common.AddressColumn;
+import com.kimcompany.jangbogbackendver2.Common.CommonColumn;
+import com.kimcompany.jangbogbackendver2.Member.Model.ClientEntity;
 import com.kimcompany.jangbogbackendver2.Order.Dto.TryRefundDto;
+import com.kimcompany.jangbogbackendver2.Order.Model.OrderEntity;
+import com.kimcompany.jangbogbackendver2.Order.Repo.OrderRepo;
 import com.kimcompany.jangbogbackendver2.Payment.Model.CardEntity;
 import com.kimcompany.jangbogbackendver2.Payment.Model.CommonPaymentEntity;
 import com.kimcompany.jangbogbackendver2.Payment.Repo.CardRepo;
 import com.kimcompany.jangbogbackendver2.Payment.Service.PaymentService;
+import com.kimcompany.jangbogbackendver2.Product.Model.ProductEntity;
+import com.kimcompany.jangbogbackendver2.ProductEvent.Model.ProductEventEntity;
+import com.kimcompany.jangbogbackendver2.Store.Model.StoreEntity;
 import com.kimcompany.jangbogbackendver2.Text.BasicText;
 import com.kimcompany.jangbogbackendver2.Util.UtilService;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +27,9 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.json.simple.JSONObject;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -29,6 +39,9 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -37,6 +50,8 @@ public class PaymentController {
     private final KgService KgService;
     private final CardRepo cardRepo;
     private final PaymentService paymentService;
+    private final RedisTemplate<String,Object> redisTemplate;
+    private final OrderRepo orderRepo;
 
     /**
      * 어드민 페이지 환불요청 테스트위해 임시 구축한 결제 api컨트롤러
@@ -44,6 +59,7 @@ public class PaymentController {
      * @param response
      */
     @RequestMapping(value = "/kg", method = RequestMethod.POST)
+    @Transactional(rollbackFor = Exception.class)
     public void kgtest(HttpServletRequest request, HttpServletResponse response) {
         String P_STATUS = request.getParameter("P_STATUS");       // 인증 상태
         String P_RMESG1 = request.getParameter("P_RMESG1");      // 인증 결과 메시지
@@ -90,17 +106,59 @@ public class PaymentController {
                 byte[] responseBody = method.getResponseBody();
                 String[] values = new String(responseBody).split("&");
                 CardResultDto cardResultDto = CardResultDto.set(values);
-                cardRepo.save(CardResultDto.dtoToEntity(cardResultDto));
+                String oid = cardResultDto.getP_OID();
+                LinkedHashMap<String, Object> orderInfos = (LinkedHashMap<String, Object>) redisTemplate.opsForHash().entries(oid + "payment").get(oid + "payment");
+                System.out.println(orderInfos.toString());
+                if(!orderInfos.get("confirmTotalPrice").toString().equals(cardResultDto.getPAmt())){
+                    throw new Exception("금액 불일치 ");
+                }
+                Map<String, List<Map<String, Object>>> orderInfo = (Map<String, List<Map<String, Object>>>) orderInfos.get("paymentInfo");
+                for(Map.Entry<String, List<Map<String, Object>>> order:orderInfo.entrySet()){
+                    System.out.println( order.getKey());
+                    boolean saveCardFlag = false;
+                    List<Map<String, Object>> orderDetail = order.getValue();
+                    CardEntity cardEntity = new CardEntity();
+                    long storeId = Long.parseLong(order.getKey());
+                    int index=0;
+                    for(Map<String, Object> o:orderDetail){
+                        if(index==orderDetail.size()-1){
+                            continue;
+                        }
+                        if(!saveCardFlag){
+                            cardEntity = CardResultDto.dtoToEntity(cardResultDto, storeId, Integer.parseInt(orderDetail.get(orderDetail.size()-1).get("totalPrice").toString()));
+                            cardRepo.save(cardEntity);
+                            saveCardFlag=true;
+                        }
+                        String[] address = o.get("address").toString().split(",");
+                        ProductEventEntity productEventEntity=null;
+                        if(!UtilService.confirmNull(o.get("eventId").toString())&&!o.get("eventId").toString().equals("0")){
+                            productEventEntity = ProductEventEntity.builder().id(Long.parseLong(o.get("eventId").toString())).build();
+                        }
+                        OrderEntity orderEntity = OrderEntity.builder().cardEntity(cardEntity)
+                                .clientEntity(ClientEntity.builder().id(Long.parseLong(cardResultDto.getPUserName())).build())
+                                .commonColumn(CommonColumn.builder().state(BasicText.trueStateNum).build())
+                                .addressColumn(AddressColumn.builder().address(address[1]).detailAddress(address[2]).postCode(address[0]).build())
+                                .price(Integer.parseInt(o.get("price").toString()))
+                                .storeEntity(StoreEntity.builder().id(storeId).build())
+                                .productEntity(ProductEntity.builder().id(Long.parseLong(o.get("productId").toString())).build())
+                                .totalCount(Integer.parseInt(o.get("count").toString()))
+                                .productEventEntity(productEventEntity)
+                                .build();
+                        orderRepo.save(orderEntity);
+                        index+=1;
+                    }
+
+                }
             } catch (HttpException e) {
                 log.info("Fatal protocol violation: {}", e.getMessage());
                 e.printStackTrace();
-            } catch (IOException e) {
-                log.info("Fatal transport error: {}", e.getMessage());
+            }catch (Exception e){
                 e.printStackTrace();
+                log.info("Fatal protocol violation: {}", e.getMessage());
             } finally {
                 method.releaseConnection();
             }
-            UtilService.goForward( "https://localhost:3030/html/test?tid="+P_TID,request,response);
+            UtilService.goForward( "http://localhost:3000/test?tid="+P_TID,request,response);
         }
     }
 
